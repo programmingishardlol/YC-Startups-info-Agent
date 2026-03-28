@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Startup {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  companyName     String
+  ycBatch         String
+  companyUrl      String
+  launchedAt      Int?
+  website         String?
+  location        String?
+  isActive        Boolean       @default(true)
+  isHomepageVisible Boolean     @default(false)
+  payload         Json
+  sourceUrls      Json
+  discoveredAt    DateTime      @default(now())
+  lastRefreshedAt DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  views           StartupView[]
+
+  @@index([ycBatch, isActive])
+  @@index([isHomepageVisible, isActive])
+  @@index([launchedAt(sort: Desc)])
+  @@index([lastRefreshedAt(sort: Desc)])
+}
+
+model StartupView {
+  id        String   @id @default(cuid())
+  startupId String
+  requestId String
+  surface   String   @default("homepage")
+  shownAt   DateTime @default(now())
+  startup   Startup  @relation(fields: [startupId], references: [id], onDelete: Cascade)
+
+  @@index([startupId, shownAt(sort: Desc)])
+  @@index([requestId])
+  @@index([shownAt(sort: Desc)])
+}
